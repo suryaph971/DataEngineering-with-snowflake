@@ -4,7 +4,7 @@ create schema ec_schema;
 
 create or replace stage instacart_stage
 url = 's3://instacartecommerce/instacart/'
-credentials=(AWS_KEY_ID='AKIASJCIWEZASPMULHBP' AWS_SECRET_KEY='e31A5mz9kQatOH+pk0HratLpCJGxF8joYLE4OZEJ');
+credentials=(AWS_KEY_ID='' AWS_SECRET_KEY='');
 
 list @instacart_stage;
 
