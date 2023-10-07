@@ -1,0 +1,91 @@
+create database practice_db;
+
+use database practice_db;
+
+create schema sf_schema;
+
+
+create stage ext_stage
+url='<s3 bucket name>'
+credentials=(AWS_KEY_ID='',AWS_SECRET_KEY='');
+
+list @ext_stage;
+
+create file format csv_file_format
+Type='CSV'
+SKIP_HEADER=1
+FIELD_DELIMITER=','
+RECORD_DELIMITER='\n'
+FIELD_OPTIONALLY_ENCLOSED_BY='"';
+
+
+select $1,$2,$3,$4 from @ext_stage/customer_18_08_2023_08.csv (file_format=>csv_file_format);
+
+
+create table emp_table(
+id integer,
+last_name varchar(100),
+first_name varchar(100),
+email string,
+company varchar(100),
+phone  string,
+address1 string,
+address2 string,
+city varchar(50),
+state varchar(50),
+postal_code varchar(50),
+country varchar(100)
+);
+
+
+copy into emp_table from @ext_stage/customer_18_08_2023_08.csv
+file_format=(format_name=csv_file_format);
+
+
+select * from emp_table;
+
+list @ext_stage;
+
+create or replace file format json_file_format type = 'JSON';
+
+create or replace table JSON_TABLE(JSON_DATA variant);
+
+copy into JSON_TABLE from @ext_stage/json_sample.json
+file_format=(format_name=json_file_format);
+
+
+
+select * from JSON_TABLE;
+
+
+select
+value:CardCVV::VARCHAR(100) as CardCVV,
+value:CardPin::Varchar(100) as CardPin,
+value:CardExpiry::Varchar(100) as CardExpiry,
+value:CreditCardHolder::String as CreditCardHolder,
+value:CreditCardNo::String as CreditCardNo
+from JSON_TABLE
+,lateral flatten(input=>JSON_DATA:credit_cards);
+
+
+create table JSON_CREDIT_CARD_DATA(
+CardCVV varchar(100),
+CardPin varchar(100),
+CardExpiry varchar(100),
+CreditCardHolder String,
+CreditCardNo String
+);
+
+insert into JSON_CREDIT_CARD_DATA 
+select
+value:CardCVV::VARCHAR(100) as CardCVV,
+value:CardPin::Varchar(100) as CardPin,
+value:CardExpiry::Varchar(100) as CardExpiry,
+value:CreditCardHolder::String as CreditCardHolder,
+value:CreditCardNo::String as CreditCardNo
+from JSON_TABLE
+,lateral flatten(input=>JSON_DATA:credit_cards);
+
+
+select * from JSON_CREDIT_CARD_DATA;
+
