@@ -1,0 +1,49 @@
+create or replace table person_details(
+id int,
+first_name string,
+last_name string,
+email string,
+gender string,
+Job string,
+Phone string
+);
+
+create or replace file format csv_file
+type='CSV'
+skip_header=1
+field_delimiter=',';
+
+
+create or replace stage time_travel_stage
+storage_integration=s3_integration
+url='<bucket name>'
+file_format=csv_file;
+
+copy into person_details from @time_travel_stage;
+
+
+select * from person_details;
+
+update person_details set First_Name='Sharma';
+
+select * from person_details at (OFFSET=>-60*5);
+
+truncate table person_details;
+
+Alter session set timezone='UTC';
+select DATEADD(DAY ,1,current_timestamp);
+
+-- 2023-10-12 10:59:53.551 +0000
+
+update person_details set First_Name='Data scientist';
+
+select * from person_details at (timestamp=>'2023-10-11 10:59:53.551 +0000'::timestamp);
+
+
+
+select * from person_details;
+
+update person_details set email='Null';
+
+//01af933c-3200-e5d5-0006-8b2a0001e096
+select * from person_details at (statement=>'01af933c-3200-e5d5-0006-8b2a0001e096');
