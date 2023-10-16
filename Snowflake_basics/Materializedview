@@ -1,0 +1,43 @@
+ALTER session set USE_CACHED_RESULT=FALSE; --disable global caching
+
+create or replace TRANSIENT DATABASE orders;
+
+create or replace schema TPCH_SF100;
+
+
+create or replace table TPCH_SF100.orders as select * from snowflake_sample_data.TPCH_SF100.orders;
+
+select * from orders limit 100;
+
+-- Example statement view
+select
+YEAR(O_ORDERDATE) as YEAR,
+MAX(O_COMMENT) as MAX_COMMENT,
+MIN(O_COMMENT) as MIN_COMMENT,
+MAX(O_CLERK) as MAX_CLERK,
+MIN(O_CLERK) as MIN_CLERK
+FROM ORDERS.TPCH_SF100.orders
+GROUP BY YEAR(O_ORDERDATE)
+ORDER BY YEAR(O_ORDERDATE);
+
+-- create materialized view
+create or replace MATERIALIZED VIEW  orders_mv
+as
+select
+YEAR(O_ORDERDATE) as YEAR,
+MAX(O_COMMENT) as MAX_COMMENT,
+MIN(O_COMMENT) as MIN_COMMENT,
+MAX(O_CLERK) as MAX_CLERK,
+MIN(O_CLERK) as MIN_CLERK
+FROM ORDERS.TPCH_SF100.orders
+GROUP BY YEAR(O_ORDERDATE);
+
+
+select * from orders_mv order by year;
+
+
+update orders  set O_CLERK='Clerk#99900000'
+where O_ORDERDATE='1992-01-01';
+
+
+select * from orders_mv;
