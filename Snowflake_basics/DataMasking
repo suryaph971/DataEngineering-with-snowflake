@@ -1,0 +1,89 @@
+show tables;
+
+create or replace table customers(
+id number,
+full_name varchar,
+email varchar,
+phone varchar,
+spent number,
+created_date date default current_date
+);
+
+
+insert into customers(id,full_name,email,phone,spent)
+values
+(1,'lewis MacDwyer','lmacdywer@gmail.com','262-665-9168',140),
+(2,'Ty pentingall','typentingal@yahoo.com','263-666-9879',150),
+(3,'Marlee spadazzi','mspadazii@ymail.com','564-8685-8980',560),
+(4,'Heywood Terney','Hterney@hotmail.com','897-785-7456',156),
+(5,'Odilia seti','oseti@outlook.com','456-1235-756',238);
+
+select * from customers;
+
+create or replace ROLE ANALYST_MASKED;
+create or replace ROLE ANALYST_FULL;
+
+GRANT SELECT ON TABLE CUSTOMERS TO ROLE ANALYST_MASKED;
+GRANT SELECT ON TABLE CUSTOMERS TO ROLE ANALYST_FULL;
+
+GRANT USAGE ON SCHEMA SF_SCHEMA TO ROLE ANALYST_MASKED;
+GRANT USAGE ON SCHEMA SF_SCHEMA TO ROLE ANALYST_FULL;
+
+GRANT USAGE ON DATABASE PRACTICE_DB TO ROLE ANALYST_MASKED;
+GRANT USAGE ON DATABASE PRACTICE_DB TO ROLE ANALYST_FULL;
+
+
+GRANT USAGE ON WAREHOUSE COMPUTE_WH TO ROLE ANALYST_MASKED;
+GRANT USAGE ON WAREHOUSE COMPUTE_WH TO ROLE ANALYST_FULL;
+
+GRANT ROLE ANALYST_MASKED TO USER SNOWFLAKEPRACTICE4;
+GRANT ROLE ANALYST_FULL TO USER SNOWFLAKEPRACTICE4;
+
+create or replace masking policy phone
+as (val varchar) returns varchar ->
+case
+    when current_role() in ('ANALYST_FULL','ACCOUNTADMIN') then val
+    else '##-###-##'
+    END;
+
+
+Alter table CUSTOMERS MODIFY COLUMN PHONE set masking policy phone;
+
+use role ANALYST_FULL;
+
+select * from CUSTOMERS;
+
+use role ANALYST_MASKED;
+select * from CUSTOMERS;
+
+
+--Assign masking policy to multiple colums
+Alter table CUSTOMERS MODIFY COLUMN full_name set masking policy phone;
+
+use role ANALYST_MASKED;
+select * from customers;
+
+
+use role ACCOUNTADMIN;
+
+
+--unset masking policy
+Alter table CUSTOMERS MODIFY COLUMN PHONE unset masking policy;
+Alter table CUSTOMERS MODIFY COLUMN full_name unset masking policy;
+
+
+
+create or replace masking policy phone
+as (val varchar) returns varchar ->
+case
+    when current_role() in ('ANALYST_FULL','ACCOUNTADMIN') then val
+    else CONCAT(left(val,2),'*****')
+    END;
+
+
+Alter table CUSTOMERS MODIFY COLUMN PHONE set masking policy phone;
+Alter table CUSTOMERS MODIFY COLUMN full_name set masking policy phone;
+
+
+use role ANALYST_MASKED;
+select * from customers;
