@@ -90,8 +90,8 @@ def transformation(file,sourcepath,storage_account_key,storage_account_name,conn
         artist_df.drop_duplicates(subset=['artist_id'])
         song_df.drop_duplicates(subset=['song_id'])
 
-        album_df['album_release_date']=pd.to_datetime(album_df['album_release_date'])
-        song_df['song_added']=pd.to_datetime(song_df['song_added'])
+        album_df['album_release_date']=pd.to_datetime(album_df['album_release_date'],format="%Y-%m-%d", errors='coerce')
+        song_df['song_added']=pd.to_datetime(song_df['song_added'],format="%Y-%m-%d", errors='coerce')
 
         if(uploaddatatoblob(file,sourcepath,storage_account_key,storage_account_name,connection_string,container_name,targetContainerName,rawDirectory,albumContainerName,processedDirectory,albumDirectory,album_df,'album') and uploaddatatoblob(file,sourcepath,storage_account_key,storage_account_name,connection_string,container_name,targetContainerName,rawDirectory,artistContainerName,processedDirectory,artistDirectory,artist_df,'artist') and uploaddatatoblob(file,sourcepath,storage_account_key,storage_account_name,connection_string,container_name,targetContainerName,rawDirectory,songContainerName,processedDirectory,songDirectory,song_df,'songs')):
             print("Data Uploaded successfully")
